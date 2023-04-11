@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
@@ -16,7 +17,11 @@ public class Anagrams {
 
         var words = Files.readAllLines(Path.of("wordlist.txt"), StandardCharsets.ISO_8859_1);
 
+        long start = System.currentTimeMillis();
         var anagrams = anagramize(words);
+        long duration = System.currentTimeMillis() - start;
+
+        System.out.println("Computed anagrams in " + duration + " ms");
 
         System.out.println("Size of anagrams list: " + anagrams.size());
 
@@ -29,15 +34,14 @@ public class Anagrams {
     }
 
     public static Map<String, Set<String>> anagramize(Collection<String> words) {
-        Map<String, Set<String>> allWords = new HashMap<>(words.size());
+        Map<String, Set<String>> allWords = new ConcurrentHashMap<>(words.size());
 
-        for (String word : words) {
+        words.stream().parallel().forEach(word->{
             var normalized = normalizeWord(word);
+           allWords.compute(normalized, (k, v) -> v == null ? setOf(word) : addTo(v, word));
+        });
 
-            allWords.compute(normalized, (k, v) -> v == null ? setOf(word) : addTo(v, word));
-
-        }
-        return allWords.entrySet().stream()
+        return allWords.entrySet().stream().parallel()
                 .filter(e -> e.getValue().size() > 1)
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
