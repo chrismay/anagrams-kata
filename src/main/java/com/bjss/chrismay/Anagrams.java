@@ -34,19 +34,18 @@ public class Anagrams {
     }
 
     public static Map<String, Set<String>> anagramize(Collection<String> words) {
+
+        // Map to hold normalizedValue=>Set<words which normalize to that value>
         Map<String, Set<String>> allWords = new ConcurrentHashMap<>(words.size());
 
+        // Map holding _only_ the normalizedValues that have more than one matching word.
+        Map<String, Set<String>> anagramsOnly = new ConcurrentHashMap<>(words.size());
 
-        words.parallelStream().forEach(word -> {
-            var normalized = normalizeWord(word);
+        words.parallelStream().forEach(word ->
+            allWords.compute(normalizeWord(word), (k, v) -> v == null ? setOf(word) : addTo(v, word,k,anagramsOnly))
+        );
 
-            allWords.compute(normalized, (k, v) -> v == null ? setOf(word) : addTo(v, word));
-        });
-
-
-        return allWords.entrySet().stream()
-                .filter(e -> e.getValue().size() > 1)
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return anagramsOnly;
     }
 
     public static String normalizeWord(String word) {
@@ -61,8 +60,14 @@ public class Anagrams {
         return s;
     }
 
-    public static Set<String> addTo(Set<String> target, String word) {
+    /**
+     * Add a word to a set of words, and then add the resulting set to a map, based on the supplied key (overwriting any prior value)
+     *
+     * @return the updated set of words.
+     */
+    public static Set<String> addTo(Set<String> target, String word, String key, Map<String,Set<String>> anagramsOnly) {
         target.add(word);
+        anagramsOnly.put(key, target);
         return target;
     }
 
