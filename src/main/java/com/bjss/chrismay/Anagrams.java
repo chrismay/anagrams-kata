@@ -36,22 +36,29 @@ public class Anagrams {
     public static Map<String, Set<String>> anagramize(Collection<String> words) {
         Map<String, Set<String>> allWords = new ConcurrentHashMap<>(words.size());
 
-        words.stream().parallel().forEach(word->{
+
+        words.parallelStream().forEach(word -> {
             var normalized = normalizeWord(word);
-           allWords.compute(normalized, (k, v) -> v == null ? setOf(word) : addTo(v, word));
+
+            allWords.compute(normalized, (k, v) -> v == null ? setOf(word) : addTo(v, word));
         });
 
-        return allWords.entrySet().stream().parallel()
+
+        return allWords.entrySet().stream()
                 .filter(e -> e.getValue().size() > 1)
                 .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public static String normalizeWord(String word) {
-        return Arrays.stream(word.split("")).sorted().collect(Collectors.joining());
+        var letters = word.toCharArray();
+        Arrays.sort(letters);
+        return new String(letters);
     }
 
     public static Set<String> setOf(String word) {
-        return new HashSet<>(List.of(word));
+        Set<String> s =  new HashSet<>();
+        s.add(word);
+        return s;
     }
 
     public static Set<String> addTo(Set<String> target, String word) {
