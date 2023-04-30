@@ -6,11 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
 import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.toMap;
 
 public class Anagrams {
     public static void main(String[] args) throws IOException {
