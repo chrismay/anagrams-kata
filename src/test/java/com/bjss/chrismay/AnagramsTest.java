@@ -22,6 +22,13 @@ public class AnagramsTest {
     }
 
     @Test
+    public void canListWhenNoAnagams(){
+        var anags = Anagrams.anagramize(Set.of("one", "two"));
+        assertEquals(0, anags.size());
+    }
+
+
+    @Test
     public void normalizeWord() {
         var word = "hello";
         assertEquals("ehllo", Anagrams.normalizeWord(word));
